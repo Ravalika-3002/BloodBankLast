@@ -1,0 +1,84 @@
+.admin-records {
+  padding: 30px 40px;
+}
+
+/* Tabs */
+.records-tabs {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.tab {
+  background: white;
+  padding: 8px 20px;
+  font-weight: 600;
+  color: #e63946;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #e63946;
+  color: white;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+}
+
+/* Grid */
+.records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 25px;
+}
+
+/* Cards */
+.record-card {
+  background: white;
+  padding: 22px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.record-title {
+  color: #e63946;
+  margin-bottom: 6px;
+}
+
+/* EMAIL IN RED */
+.email-red {
+  color: #e63946;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* CITY */
+.city-text {
+  color: #444;
+  font-size: 15px;
+}
+
+/* STATUS */
+.status-badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.status-badge.approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}

@@ -1,0 +1,36 @@
+.navbar {
+  height: 55px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  font-weight: bold;
+}
+
+/* NAVBAR COLORS */
+.white-nav {
+  background: white;
+  color: #b71c1c;
+}
+
+.red-nav {
+  background: #b71c1c;
+  color: white;
+}
+
+/* LOGO + LINKS */
+.nav-logo,
+.nav-links a {
+  text-decoration: none;
+  color: inherit;
+  margin-left: 18px;
+}
+
+/* BUTTON */
+.nav-links button {
+  background: transparent;
+  border: 1px solid currentColor;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
