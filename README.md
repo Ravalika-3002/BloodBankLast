@@ -52,5 +52,48 @@ This application helps manage blood donors, hospitals, blood inventories, and bl
 
 ---
 
-## 📁 Project Structure
+
+
+##  Project Structure
+
+BloodBankLast
+│
+├── Backend
+│ ├── config
+│ ├── middleware
+│ ├── models
+│ ├── routes
+│ ├── server.js
+│ └── .env
+│
+├── blood-bank-frontend
+│ ├── src
+│ ├── public
+│ └── package.json
+│
+└── README.md
+##  How to Run the Project
+
+
+```bash
+cd Backend
+npm install
+npm start
+
+
+cd blood-bank-frontend
+npm install
+npm start
+
+Create a .env file inside Backend:
+
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+###############
+Status:
+Still under development
+
+
+
+
 
