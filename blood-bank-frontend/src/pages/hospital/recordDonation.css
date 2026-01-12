@@ -1,0 +1,67 @@
+/* CONTAINER */
+.donation-container {
+  max-width: 520px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* TITLE */
+.donation-container h2 {
+  color: #e63946;
+  margin-bottom: 10px;
+}
+
+/* INFO BOX */
+.donation-container .info-text {
+  background: #ffecec;
+  padding: 10px;
+  border-left: 5px solid #e63946;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* LABEL */
+.donation-container label {
+  font-weight: bold;
+  margin-top: 15px;
+  display: block;
+}
+
+/* INPUTS */
+.donation-container select,
+.donation-container input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1.5px solid #e63946;
+  outline: none;
+}
+
+/* INPUT FOCUS */
+.donation-container select:focus,
+.donation-container input:focus {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 2px rgba(230,57,70,0.15);
+}
+
+/* BUTTON */
+.donation-container button {
+  width: 100%;
+  margin-top: 25px;
+  padding: 14px;
+  background: #e63946;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.donation-container button:hover {
+  background: #d62839;
+}

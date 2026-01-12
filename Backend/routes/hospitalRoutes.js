@@ -104,6 +104,9 @@ router.get("/inventory", protect(["hospital"]), async (req, res) => {
 /* ============================
    RECORD DONATION
 ============================ */
+/* ============================
+   RECORD DONATION (SAFE)
+============================ */
 router.post("/donation", protect(["hospital"]), async (req, res) => {
   try {
     const { donorId, bloodGroup, units } = req.body;
@@ -112,20 +115,46 @@ router.post("/donation", protect(["hospital"]), async (req, res) => {
       return res.status(400).json({ message: "Invalid donation data" });
     }
 
+    // 1️⃣ Check donor exists
     const donor = await Donor.findById(donorId);
     if (!donor) {
       return res.status(404).json({ message: "Donor not found" });
     }
 
-    // Save donation record
+    // 2️⃣ Max units rule
+    if (units > 1) {
+      return res
+        .status(400)
+        .json({ message: "Maximum 1 unit allowed per donation" });
+    }
+
+    // 3️⃣ Over-donation check (90 days)
+    const lastDonation = await Donation.findOne({ donorId })
+      .sort({ donatedAt: -1 });
+
+    if (lastDonation) {
+      const daysPassed =
+        (Date.now() - lastDonation.donatedAt.getTime()) /
+        (1000 * 60 * 60 * 24);
+
+      if (daysPassed < 90) {
+        return res.status(400).json({
+          message: `Donor can donate again after ${Math.ceil(
+            90 - daysPassed
+          )} days`
+        });
+      }
+    }
+
+    // 4️⃣ Save donation
     await Donation.create({
       donorId,
-      hospitalId: req.user._id, // ✅ FIXED
+      hospitalId: req.user._id,
       bloodGroup,
       units
     });
 
-    // Update inventory
+    // 5️⃣ Update inventory
     let inventory = await Inventory.findOne({
       hospitalId: req.user._id,
       bloodGroup
@@ -143,12 +172,13 @@ router.post("/donation", protect(["hospital"]), async (req, res) => {
 
     await inventory.save();
 
-    res.json({ message: "Donation recorded and inventory updated" });
+    res.json({ message: "Donation recorded successfully" });
   } catch (err) {
     console.error("Donation error:", err);
     res.status(500).json({ message: "Failed to record donation" });
   }
 });
+
 
 /* ============================
    VIEW DONATIONS RECEIVED
