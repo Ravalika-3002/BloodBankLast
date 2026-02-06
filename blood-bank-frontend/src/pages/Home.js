@@ -2,7 +2,7 @@ function Home() {
   return (
     <div className="home-hero">
       <div className="home-content">
-        <h1 className="home-title">
+        <h1 className="home-title" style={{ color: 'black' }}>
           Blood Bank Management System
         </h1>
 

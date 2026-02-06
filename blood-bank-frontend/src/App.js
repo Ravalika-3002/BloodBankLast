@@ -9,18 +9,23 @@ import Register from "./pages/auth/Register";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminInventories from "./pages/admin/AdminInventories";
 import ManageHospitals from "./pages/admin/ManageHospitals";
-import SystemRecords from "./pages/admin/AdminRecords";
+//import SystemRecords from "./pages/admin/AdminRecords";
 
 import HospitalDashboard from "./pages/hospital/HospitalDashboard";
 import Inventory from "./pages/hospital/Inventory";
 import RecordDonation from "./pages/hospital/RecordDonation";
-import Requests from "./pages/hospital/Requests";
+//import Requests from "./pages/hospital/IncomingRequests";
 import Donations from "./pages/hospital/Donations";
 
 import UserDashboard from "./pages/user/UserDashboard";
 import SearchAndRequestBlood from "./pages/user/SearchAndRequestBlood";
 import MyRequests from "./pages/user/MyRequests";
 import AdminRecords from "./pages/admin/AdminRecords";
+import IncomingRequests from "./pages/hospital/IncomingRequests";
+import DonorDashboard from "./pages/donor/DonorDashboard";
+import EmergencyRequest from "./pages/hospital/EmergencyRequest";
+import DonationRequests from "./pages/donor/DonationRequests";
+import MyDonations from "./pages/donor/MyDonations";
 
 function App() {
   const { user } = useAuth();
@@ -55,12 +60,18 @@ function App() {
         <Route path="/hospital" element={<HospitalDashboard />} />
         <Route path="/hospital/inventory" element={<Inventory />} />
         <Route path="/hospital/donation" element={<RecordDonation />} />
-        <Route path="/hospital/requests" element={<Requests />} />
+        <Route path="/hospital/requests" element={<IncomingRequests />} />
         <Route path="/hospital/donations" element={<Donations />} />
-
+        
         <Route path="/user" element={<UserDashboard />} />
         <Route path="/user/search" element={<SearchAndRequestBlood />} />
         <Route path="/user/my-requests" element={<MyRequests />} />
+        <Route path="/hospital/emergency" element={<EmergencyRequest />} />
+
+<Route path="/donor" element={<DonorDashboard />} />
+<Route path="/donor/requests" element={<DonationRequests />} />
+<Route path="/donor/donations" element={<MyDonations />} />
+
       </Routes>
     </div>
   );

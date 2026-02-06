@@ -1,206 +1,158 @@
 const express = require("express");
-const mongoose = require("mongoose"); // ✅ REQUIRED
 const router = express.Router();
-
 const protect = require("../middleware/auth");
+
 const Donation = require("../models/Donation");
 const Donor = require("../models/Donor");
 const Inventory = require("../models/Inventory");
-const Request = require("../models/Request");
+const BloodRequest = require("../models/BloodRequest");
+const DonorRequest = require("../models/DonorRequest");
 
-/* ============================
-   VIEW BLOOD REQUESTS
-============================ */
+/* ================= CREATE REQUEST ================= */
+router.post("/request-based-donation", protect(["hospital"]), async (req, res) => {
+  const { bloodGroup, unitsRequired, urgency } = req.body;
+
+  if (!bloodGroup || unitsRequired <= 0) {
+    return res.status(400).json({ message: "Invalid request data" });
+  }
+
+  const inventory = await Inventory.findOne({
+    hospitalId: req.user._id,
+    bloodGroup
+  });
+
+  if (inventory && inventory.quantity >= unitsRequired) {
+    return res.status(400).json({
+      message: "Sufficient inventory available"
+    });
+  }
+
+  const request = await BloodRequest.create({
+    hospitalId: req.user._id,
+    bloodGroup,
+    unitsRequired,
+    urgency: urgency || "normal"
+  });
+
+  const donors = await Donor.find({ bloodGroup });
+
+  for (const donor of donors) {
+    await DonorRequest.create({
+      requestId: request._id,
+      donorId: donor._id,
+      eligibleAtThatTime: true,
+      status: "pending"
+    });
+  }
+
+  res.json({ message: "Request created" });
+});
+
+/* ================= GET HOSPITAL REQUESTS ================= */
 router.get("/requests", protect(["hospital"]), async (req, res) => {
-  const requests = await Request.find({
-    hospitalId: req.user._id, // ✅ FIXED
-    status: "pending"
-  }).populate("userId", "name email city");
+  const requests = await BloodRequest.find({
+    hospitalId: req.user._id,
+    archived: false
+  }).sort({ createdAt: -1 });
 
   res.json(requests);
 });
 
-/* ============================
-   ACCEPT REQUEST
-============================ */
-router.put("/request/:id/accept", protect(["hospital"]), async (req, res) => {
-  const request = await Request.findById(req.params.id);
-
-  if (!request) {
-    return res.status(404).json({ message: "Request not found" });
-  }
-
-  const inventory = await Inventory.findOne({
-    hospitalId: req.user._id, // ✅ FIXED
-    bloodGroup: request.bloodGroup
-  });
-
-  if (!inventory || inventory.quantity < request.units) {
-    return res.status(400).json({ message: "Insufficient stock" });
-  }
-
-  inventory.quantity -= request.units;
-  await inventory.save();
-
-  request.status = "approved";
-  await request.save();
-
-  res.json({ message: "Request approved" });
-});
-
-/* ============================
-   DECLINE REQUEST
-============================ */
-router.put("/request/:id/decline", protect(["hospital"]), async (req, res) => {
-  const request = await Request.findById(req.params.id);
-
-  if (!request) {
-    return res.status(404).json({ message: "Request not found" });
-  }
-
-  request.status = "declined";
-  await request.save();
-
-  res.json({ message: "Request declined" });
-});
-
-/* ============================
-   VIEW HOSPITAL INVENTORY
-   (AGGREGATED, NO DUPLICATES)
-============================ */
-router.get("/inventory", protect(["hospital"]), async (req, res) => {
-  const hospitalId = req.user.id;
-
-  const rawInventory = await Inventory.aggregate([
-    {
-      $match: {
-        hospitalId: new mongoose.Types.ObjectId(hospitalId)
-      }
-    },
-    {
-      $group: {
-        _id: "$bloodGroup",
-        units: { $sum: "$quantity" }
-      }
-    }
-  ]);
-
-  const BLOOD_GROUPS = ["A+","A-","B+","B-","O+","O-","AB+","AB-"];
-
-  // Convert to map
-  const inventoryMap = {};
-  rawInventory.forEach(item => {
-    inventoryMap[item._id] = item.units;
-  });
-
-  // Ensure all blood groups exist
-  const finalInventory = BLOOD_GROUPS.map(bg => ({
-    bloodGroup: bg,
-    units: inventoryMap[bg] || 0
-  }));
-
-  res.json(finalInventory);
-});
-/* ============================
-   RECORD DONATION
-============================ */
-/* ============================
-   RECORD DONATION (SAFE)
-============================ */
-router.post("/donation", protect(["hospital"]), async (req, res) => {
-  try {
-    const { donorId, bloodGroup, units } = req.body;
-
-    if (!donorId || !bloodGroup || !units || units <= 0) {
-      return res.status(400).json({ message: "Invalid donation data" });
-    }
-
-    // 1️⃣ Check donor exists
-    const donor = await Donor.findById(donorId);
-    if (!donor) {
-      return res.status(404).json({ message: "Donor not found" });
-    }
-
-    // 2️⃣ Max units rule
-    if (units > 1) {
-      return res
-        .status(400)
-        .json({ message: "Maximum 1 unit allowed per donation" });
-    }
-
-    // 3️⃣ Over-donation check (90 days)
-    const lastDonation = await Donation.findOne({ donorId })
-      .sort({ donatedAt: -1 });
-
-    if (lastDonation) {
-      const daysPassed =
-        (Date.now() - lastDonation.donatedAt.getTime()) /
-        (1000 * 60 * 60 * 24);
-
-      if (daysPassed < 90) {
-        return res.status(400).json({
-          message: `Donor can donate again after ${Math.ceil(
-            90 - daysPassed
-          )} days`
-        });
-      }
-    }
-
-    // 4️⃣ Save donation
-    await Donation.create({
-      donorId,
-      hospitalId: req.user._id,
-      bloodGroup,
-      units
-    });
-
-    // 5️⃣ Update inventory
-    let inventory = await Inventory.findOne({
-      hospitalId: req.user._id,
-      bloodGroup
-    });
-
-    if (!inventory) {
-      inventory = new Inventory({
-        hospitalId: req.user._id,
-        bloodGroup,
-        quantity: units
-      });
-    } else {
-      inventory.quantity += units;
-    }
-
-    await inventory.save();
-
-    res.json({ message: "Donation recorded successfully" });
-  } catch (err) {
-    console.error("Donation error:", err);
-    res.status(500).json({ message: "Failed to record donation" });
-  }
-});
-
-
-/* ============================
-   VIEW DONATIONS RECEIVED
-============================ */
-router.get("/donations", protect(["hospital"]), async (req, res) => {
-  const donations = await Donation.find({
-    hospitalId: req.user._id // ✅ FIXED
-  })
-    .populate("donorId", "name email bloodGroup city")
-    .sort({ donatedAt: -1 });
-
-  res.json(donations);
-});
-
-/* ============================
-   GET DONORS
-============================ */
-router.get("/donors", protect(["hospital"]), async (req, res) => {
-  const donors = await Donor.find()
-    .select("name email bloodGroup city location");
+/* ================= GET DONORS ================= */
+router.get("/request/:id/donors", protect(["hospital"]), async (req, res) => {
+  const donors = await DonorRequest.find({
+    requestId: req.params.id
+  }).populate("donorId", "name bloodGroup phone");
 
   res.json(donors);
+});
+
+/* ================= RECORD DONATION ================= */
+router.post("/donation", protect(["hospital"]), async (req, res) => {
+  const { donorId, bloodGroup, requestId } = req.body;
+
+  const request = await BloodRequest.findById(requestId);
+  if (!request || request.archived) {
+    return res.status(400).json({ message: "Request closed" });
+  }
+
+  await Donation.create({
+    donorId,
+    hospitalId: req.user._id,
+    bloodGroup,
+    units: 1
+  });
+
+  let inventory = await Inventory.findOne({
+    hospitalId: req.user._id,
+    bloodGroup
+  });
+
+  if (!inventory) {
+    inventory = new Inventory({
+      hospitalId: req.user._id,
+      bloodGroup,
+      quantity: 1
+    });
+  } else {
+    inventory.quantity += 1;
+  }
+
+  await inventory.save();
+
+  request.unitsCollected += 1;
+  if (request.unitsCollected >= request.unitsRequired) {
+    request.status = "fulfilled";
+
+    await DonorRequest.updateMany(
+      { requestId },
+      {
+        $set: {
+          status: "rejected",
+          rejectionReason: "Request completed"
+        }
+      }
+    );
+  } else {
+    request.status = "partially_fulfilled";
+  }
+
+  await request.save();
+
+  res.json({ message: "Donation recorded" });
+});
+
+/* ================= REMOVE REQUEST (ALL CASES) ================= */
+router.put("/request/:id/remove", protect(["hospital"]), async (req, res) => {
+  const request = await BloodRequest.findOne({
+    _id: req.params.id,
+    hospitalId: req.user._id
+  });
+
+  if (!request) {
+    return res.status(404).json({ message: "Request not found" });
+  }
+
+  request.archived = true;
+
+  const reason =
+    request.status === "fulfilled"
+      ? "Request completed"
+      : "Request closed by hospital";
+
+  await DonorRequest.updateMany(
+    { requestId: request._id },
+    {
+      $set: {
+        status: "rejected",
+        rejectionReason: reason
+      }
+    }
+  );
+
+  await request.save();
+
+  res.json({ message: "Request removed from hospital list" });
 });
 
 module.exports = router;

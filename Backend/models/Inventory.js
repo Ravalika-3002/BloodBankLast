@@ -1,12 +1,20 @@
+//stop
 const mongoose = require("mongoose");
 
 const inventorySchema = new mongoose.Schema({
   hospitalId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Hospital"   // 🔥 REQUIRED
+    ref: "Hospital",
+    required: true
   },
-  bloodGroup: String,
-  quantity: Number
+  bloodGroup: {
+    type: String,
+    required: true
+  },
+  quantity: {
+    type: Number,
+    default: 0
+  }
 });
 
 module.exports = mongoose.model("Inventory", inventorySchema);

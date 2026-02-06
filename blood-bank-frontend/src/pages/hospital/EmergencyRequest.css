@@ -1,0 +1,129 @@
+.emergency-page {
+  padding: 30px;
+  background: #f8f9fb;
+}
+
+h1 {
+  color: #d90429;
+  margin-bottom: 20px;
+}
+
+/* REQUEST FORM */
+.request-form {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.request-form select,
+.request-form input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.request-form button {
+  background: #d90429;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* REQUEST CARD */
+.request-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* STATUS */
+.status {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.status.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status.fulfilled {
+  background: #d4edda;
+  color: #155724;
+}
+
+/* DONORS */
+.donors-list {
+  margin-top: 15px;
+}
+
+.donor-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #f1f3f5;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.badge.accepted {
+  background: #28a745;
+  color: white;
+}
+
+.badge.pending {
+  background: #ffc107;
+}
+
+.badge.rejected {
+  background: #dc3545;
+  color: white;
+}
+
+.cooling {
+  color: red;
+  font-size: 12px;
+}
+
+/* RECORD DONATION */
+.record-card {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff0f3;
+  border-left: 4px solid #d90429;
+  border-radius: 10px;
+}
+
+.record-card select {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+}
+
+.record-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: #d90429;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+}

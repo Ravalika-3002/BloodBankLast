@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import API from "../../api/axios";
 
-const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+const BLOOD_GROUPS = ["A+","A-","B+","B-","O+","O-","AB+","AB-"];
 
 function Inventory() {
   const [inventory, setInventory] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchInventory();
@@ -14,30 +15,35 @@ function Inventory() {
     try {
       const res = await API.get("/hospital/inventory");
 
-      // ✅ Convert array → object map
-      const data = {};
+      const map = {};
       res.data.forEach(item => {
-        data[item.bloodGroup] = item.units;
+        map[item.bloodGroup] = item.units;
       });
 
-      setInventory(data);
+      setInventory(map);
     } catch (err) {
       console.error(err);
       alert("Failed to load inventory");
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return <p style={{ padding: "20px" }}>Loading inventory...</p>;
+  }
 
   return (
     <div className="dashboard">
       <h2>Blood Inventory</h2>
 
       <div className="inventory-cards">
-        {BLOOD_GROUPS.map(group => {
-          const units = inventory[group] || 0;
+        {BLOOD_GROUPS.map(bg => {
+          const units = inventory[bg] || 0;
 
           return (
             <div
-              key={group}
+              key={bg}
               className={`inventory-card ${
                 units === 0
                   ? "empty-stock"
@@ -46,7 +52,7 @@ function Inventory() {
                   : "ok-stock"
               }`}
             >
-              <h3>{group}</h3>
+              <h3>{bg}</h3>
               <p className="units-text">{units} Units</p>
 
               <span className="stock-label">

@@ -8,23 +8,19 @@ function DonorDashboard() {
       <h2>Donor Dashboard</h2>
 
       <div className="dashboard-cards">
-       <div
-  className="card clickable"
-  onClick={() => navigate("/donor/requests")}
->
-  <h3>Donate Blood</h3>
-  <p>View and respond to donation requests.</p>
-</div>
-
-
-        <div className="card clickable">
-          <h3>My Donations</h3>
-          <p>Track donation history.</p>
+        <div className="card clickable" onClick={() => navigate("/donor/requests")}>
+          <h3>Donation Requests</h3>
+          <p>Hospital blood requests</p>
         </div>
 
-        <div className="card clickable">
+        <div className="card clickable" onClick={() => navigate("/donor/donations")}>
+          <h3>My Donations</h3>
+          <p>Donation history</p>
+        </div>
+
+        <div className="card clickable" onClick={() => navigate("/donor/eligibility")}>
           <h3>Eligibility</h3>
-          <p>Check donation eligibility.</p>
+          <p>Check donation cooldown</p>
         </div>
       </div>
     </div>

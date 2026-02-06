@@ -1,85 +1,133 @@
-import { useState } from "react";
-
-const mockDonationRequests = [
-  {
-    id: 1,
-    hospital: "City Hospital",
-    bloodGroup: "A+",
-    distance: "3.2 km",
-    status: "Pending"
-  },
-  {
-    id: 2,
-    hospital: "Apollo Hospital",
-    bloodGroup: "O-",
-    distance: "4.5 km",
-    status: "Pending"
-  }
-];
+import { useEffect, useState } from "react";
+import API from "../../api/axios";
 
 function DonationRequests() {
-  const [requests, setRequests] = useState(mockDonationRequests);
+  const [requests, setRequests] = useState([]);
 
-  const handleAccept = (id) => {
-    setRequests(requests.map(req =>
-      req.id === id ? { ...req, status: "Accepted" } : req
-    ));
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    const res = await API.get("/donor/requests");
+    setRequests(res.data);
   };
 
-  const handleReject = (id, reason) => {
-    setRequests(requests.map(req =>
-      req.id === id ? { ...req, status: "Rejected", reason } : req
-    ));
+  const accept = async (id) => {
+    try {
+      await API.put(`/donor/request/${id}/accept`);
+      fetchRequests();
+    } catch (err) {
+      alert(err.response?.data?.message);
+    }
   };
+
+  const reject = async (id, reason) => {
+    try {
+      await API.put(`/donor/request/${id}/reject`, { reason });
+      fetchRequests();
+    } catch (err) {
+      alert(err.response?.data?.message);
+    }
+  };
+
+  /* ===== GROUP BY BLOOD GROUP (LATEST ONLY) ===== */
+  const latestPerGroup = Object.values(
+    requests.reduce((acc, curr) => {
+      const bg = curr.requestId.bloodGroup;
+
+      if (
+        !acc[bg] ||
+        new Date(curr.requestId.createdAt) >
+          new Date(acc[bg].requestId.createdAt)
+      ) {
+        acc[bg] = curr;
+      }
+
+      return acc;
+    }, {})
+  );
 
   return (
     <div className="dashboard">
       <h2>Donation Requests</h2>
 
-      <div className="dashboard-cards">
-        {requests.map(req => (
-          <div key={req.id} className="card">
-            <h3>{req.hospital}</h3>
-            <p><strong>Blood Group:</strong> {req.bloodGroup}</p>
-            <p><strong>Distance:</strong> {req.distance}</p>
+      {latestPerGroup.length === 0 && (
+        <p style={{ color: "#6c757d" }}>
+          No donation requests
+        </p>
+      )}
+
+      {latestPerGroup.map(r => {
+        const isRemoved = r.requestId.archived;
+
+        let finalStatus;
+        if (isRemoved) {
+          finalStatus =
+            r.rejectionReason === "Request completed"
+              ? "FULFILLED"
+              : "CANCELLED";
+        } else {
+          finalStatus = r.status.toUpperCase();
+        }
+
+        return (
+          <div key={r._id} className="card">
+            <h3>{r.requestId.bloodGroup}</h3>
 
             <p>
-              <strong>Status:</strong>{" "}
-              <span className={`status ${req.status.toLowerCase()}`}>
-                {req.status}
-              </span>
+              Units Needed: {r.requestId.unitsRequired}
             </p>
 
-            {req.status === "Pending" && (
-              <div className="action-buttons">
-                <button onClick={() => handleAccept(req.id)}>
-                  Accept
-                </button>
+            <p>
+              Status: <b>{finalStatus}</b>
+            </p>
 
-                <select
-                  onChange={(e) =>
-                    handleReject(req.id, e.target.value)
-                  }
-                  defaultValue=""
-                >
-                  <option value="" disabled>
-                    Reject Reason
-                  </option>
-                  <option value="Not available today">Not available today</option>
-                  <option value="Health issues">Health issues</option>
-                  <option value="Too far">Too far</option>
-                </select>
-              </div>
+            {/* Cooling period */}
+            {!r.eligibleAtThatTime && !isRemoved && (
+              <p style={{ color: "red" }}>
+                You are in cooling period
+              </p>
             )}
 
-            {req.status === "Rejected" && (
-              <p className="reject-reason">
-                <strong>Reason:</strong> {req.reason}
+            {/* ACTIONS */}
+            {r.status === "pending" &&
+              !isRemoved &&
+              r.eligibleAtThatTime && (
+                <>
+                  <button onClick={() => accept(r._id)}>
+                    Accept
+                  </button>
+
+                  <select
+                    onChange={(e) =>
+                      reject(r._id, e.target.value)
+                    }
+                  >
+                    <option value="">Reject Reason</option>
+                    <option value="Health issue">Health issue</option>
+                    <option value="Not available">Not available</option>
+                  </select>
+                </>
+              )}
+
+            {/* FINAL MESSAGE */}
+            {isRemoved && (
+              <p
+                style={{
+                  color: "#6c757d",
+                  fontStyle: "italic",
+                  marginTop: "8px"
+                }}
+              >
+                {finalStatus === "FULFILLED"
+                  ? "This request was fulfilled successfully"
+                  : "This request was cancelled by the hospital"}
               </p>
             )}
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }
