@@ -11,7 +11,7 @@ const router = express.Router();
    CREATE BLOOD REQUEST
 ========================= */
 router.post("/request", protect(["user"]), async (req, res) => {
-  const { hospitalId, bloodGroup, units } = req.body;
+  const { hospitalId, bloodGroup, unitsRequired } = req.body;
 
   if (!units || units <= 0) {
     return res.status(400).json({ message: "Invalid units" });
@@ -21,7 +21,7 @@ router.post("/request", protect(["user"]), async (req, res) => {
     userId: req.user.id,
     hospitalId,
     bloodGroup,
-    units
+    unitsRequired
   });
 
   res.json({ message: "Blood request sent" });

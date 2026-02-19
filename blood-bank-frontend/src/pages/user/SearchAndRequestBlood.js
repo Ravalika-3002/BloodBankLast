@@ -52,10 +52,10 @@ function SearchAndRequestBlood() {
   const requestBlood = async (hospitalId) => {
     try {
       await API.post("/user/request", {
-        hospitalId,
-        bloodGroup,
-        units
-      });
+  hospitalId,
+  bloodGroup,
+  unitsRequired: parseInt(units)
+});
       alert("Blood request sent successfully");
     } catch (err) {
       alert("Request failed");

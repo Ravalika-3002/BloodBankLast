@@ -9,8 +9,13 @@ function IncomingRequests() {
   }, []);
 
   const fetchRequests = async () => {
-    const res = await API.get("/hospital/requests");
-    setRequests(res.data);
+    try {
+      const res = await API.get("/hospital/user-requests");
+      setRequests(res.data);
+    } catch (err) {
+      console.log(err);
+      alert("Failed to load requests");
+    }
   };
 
   const approve = async (id) => {
@@ -31,11 +36,14 @@ function IncomingRequests() {
     <div className="dashboard">
       <h2>Incoming Blood Requests</h2>
 
-      {requests.map(r => (
+      {requests.map((r) => (
         <div key={r._id} className="card">
-          <h3>{r.bloodGroup} - {r.units} units</h3>
-          <p>User: {r.userId.name}</p>
-          <p>City: {r.userId.city}</p>
+          <h3>
+            {r.bloodGroup} - {r.units} units.
+          </h3>
+
+          <p>User: {r?.userId?.name || "Unknown User"}</p>
+          <p>City: {r?.userId?.city || "N/A"}</p>
 
           <button onClick={() => approve(r._id)}>Approve</button>
           <button onClick={() => reject(r._id)}>Reject</button>
