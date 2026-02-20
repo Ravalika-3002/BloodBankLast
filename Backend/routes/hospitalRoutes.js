@@ -81,7 +81,26 @@ router.get("/donors", protect(["hospital"]), async (req, res) => {
     res.status(500).json({ message: "Failed to load donors" });
   }
 });
+/* ========================
+   HOSPITAL INVENTORY
+======================== */
+router.get("/inventory", protect(["hospital"]), async (req, res) => {
+  try {
+    const inventory = await Inventory.find({ hospitalId: req.user._id });
 
+    // Convert to bloodGroup → units
+    const data = inventory.map((i) => ({
+      bloodGroup: i.bloodGroup,
+      units: i.quantity
+    }));
+
+    res.json(data);
+
+  } catch (err) {
+    console.error("Inventory Error:", err);
+    res.status(500).json({ message: "Failed to load inventory" });
+  }
+});
 
 
 /* ============================================
